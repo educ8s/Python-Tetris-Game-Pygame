@@ -7,7 +7,12 @@ class Colors:
     yellow = (237, 234, 4)
     cyan = (21, 204, 209)
     blue = (13, 64, 216)
+    white = (255, 255, 255)
+    black = (0, 0, 0)
+    grey = (15, 15, 15)
+    dark_blue = (44, 44, 127)
+    light_blue = (59, 85, 162)
 
     @classmethod
-    def get_colors(cls):
+    def get_tile_colors(cls):
         return [cls.empty, cls.green, cls.orange, cls.red, cls.purple, cls.yellow, cls.cyan, cls.blue]

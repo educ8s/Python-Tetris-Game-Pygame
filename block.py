@@ -10,7 +10,7 @@ class Block():
 		self.tiles = {}
 		self.id = id
 		self.rotation_state = 0
-		self.colors = Colors.get_colors()
+		self.colors = Colors.get_tile_colors()
 
 	def tile_positions(self):
 		tiles = self.tiles[self.rotation_state]
@@ -39,5 +39,17 @@ class Block():
 		tiles = self.tile_positions()
 		for tile in tiles:
 			tile_rect = pygame.Rect(10 + (tile.column) * 25 + 1, 10 + tile.row* 25 +1, 24, 24)
-			#screen.blit(self.textures[self.id], tile_rect)
+			pygame.draw.rect(screen, self.colors[self.id], tile_rect)
+
+	def draw_small_icon(self, screen):
+		tiles = self.tile_positions()
+		for tile in tiles:
+			offset_x = 0
+			offset_y = 0
+			if self.id == 2:
+				offset_y = 15
+				offset_x = -8
+			elif self.id == 4:
+				offset_x = -10
+			tile_rect = pygame.Rect(offset_x + 240 + (tile.column) * 20 , offset_y + 230 + tile.row* 20, 19, 19)
 			pygame.draw.rect(screen, self.colors[self.id], tile_rect)

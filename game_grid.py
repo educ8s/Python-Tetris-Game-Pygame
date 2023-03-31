@@ -6,7 +6,7 @@ class GameGrid:
 		self.grid = [[0 for j in range(columns)] for i in range(rows)]
 		self.num_rows = rows
 		self.num_cols = columns
-		self.colors = Colors.get_colors()
+		self.colors = Colors.get_tile_colors()
 
 	def is_inside(self, row, column):
 		if row >=0 and row < self.num_rows and column >= 0 and column < self.num_cols:
@@ -22,12 +22,6 @@ class GameGrid:
 		for column in range(self.num_cols):
 			if self.grid[row][column] == 0:
 				return False;
-		return True
-
-	def is_row_empty(self, row):
-		for column in range(self.num_cols):
-			if self.grid[row][column] != 0:
-				return False
 		return True
 
 	def clear_row(self, row):
@@ -54,5 +48,9 @@ class GameGrid:
 			for column in range(self.num_cols):
 				tile_value = int(self.grid[row][column])
 				tile_rect = pygame.Rect(10 + column * 25 + 1, 10 + row * 25 + 1, 24, 24)
-				#screen.blit(self.textures[tile_value], tile_rect)
 				pygame.draw.rect(screen, self.colors[tile_value], tile_rect)
+
+	def reset(self):
+		for row in range(self.num_rows):
+			for column in range(self.num_cols):
+				self.grid[row][column] = 0
