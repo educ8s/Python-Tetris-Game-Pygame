@@ -1,83 +1,103 @@
-from game_grid import GameGrid
-import random
+from grid import Grid
 from blocks import *
+import random, pygame
 
 class Game:
 	def __init__(self):
-		self.grid = GameGrid(20, 10)
+		self.grid = Grid()
 		self.blocks = [IBlock(), JBlock(), LBlock(), OBlock(), SBlock(), TBlock(), ZBlock()]
 		self.current_block = self.get_random_block()
 		self.next_block = self.get_random_block()
 		self.game_over = False
 		self.score = 0
+		self.rotate_sound = pygame.mixer.Sound('Sounds/rotate.ogg')
+		self.clear_sound = pygame.mixer.Sound('Sounds/clear.ogg')
+		self.rotate_sound.set_volume(0.1)
+		self.clear_sound.set_volume(0.3)
+		pygame.mixer.music.load('Sounds/music.ogg')
+		pygame.mixer.music.play(-1)
 
-	def block_fits(self):
-		tiles = self.current_block.tile_positions()
-		for position in tiles:
-			if self.grid.is_empty(position.row, position.column) == False :
+	def get_random_block(self):
+		if len(self.blocks)==0:
+			self.blocks = [IBlock(), JBlock(), LBlock(), OBlock(), SBlock(), TBlock(), ZBlock()]
+		block = random.choice(self.blocks)
+		self.blocks.remove(block)
+		return block
+
+	def block_inside(self):
+		tiles = self.current_block.get_cells_positions()
+		for tile in tiles:
+			if self.grid.is_inside(tile.row, tile.column) == False:
 				return False
 		return True
 
-	def rotate_block_cw(self):
-		self.current_block.rotate()
-		if self.block_fits() == False: 
-			self.current_block.undo_rotate()
+	def block_fits(self):
+		tiles = self.current_block.get_cells_positions()
+		for tile in tiles:
+			if self.grid.is_empty(tile.row, tile.column) == False:
+				return False
+		return True
 
-	def set_current_block(self):
-		self.current_block = self.next_block
-		self.current_block.reset()
-		self.next_block = self.get_random_block()
-		self.next_block.reset()
+	def draw(self, screen):
+		self.grid.draw(screen)
+		self.current_block.draw(screen, 11, 11)
+		if self.next_block.id == 3:
+			self.next_block.draw(screen, 255, 290)
+		elif self.next_block.id == 4:
+			self.next_block.draw(screen, 255, 280)
+		else:
+			self.next_block.draw(screen, 270, 270)
 
 	def move_left(self):
 		self.current_block.move(0, -1)
-		if self.block_fits() == False:
+		if self.block_inside() == False or self.block_fits() == False:
 			self.current_block.move(0, 1)
 
 	def move_right(self):
 		self.current_block.move(0, 1)
-		if self.block_fits() == False:
+		if self.block_inside() == False or self.block_fits() == False:
 			self.current_block.move(0, -1)
 
-	def place_block(self):
-		tiles = self.current_block.tile_positions()
+	def move_down(self):
+		self.current_block.move(1, 0)
+		if self.block_inside() == False or self.block_fits() == False:
+			self.current_block.move(-1, 0)
+			self.lock_block()
+
+	def rotate(self):
+		self.current_block.rotate()
+		if self.block_inside() == False or self.block_fits() == False:
+			self.current_block.undo_rotation()
+		else:
+			self.rotate_sound.play()
+
+	def lock_block(self):
+		tiles = self.current_block.get_cells_positions()
 		for position in tiles:
 			self.grid.grid[position.row][position.column] = self.current_block.id
-		cleared_rows = self.grid.clear_full_rows()
-
-		if cleared_rows == 1:
-			self.score += 40
-		elif cleared_rows == 2:
-			self.score += 100
-		elif cleared_rows == 3:
-			self.score += 300
-		elif cleared_rows == 4:
-			self.score += 1200
-			
-		self.set_current_block()
-
-	def move_down(self):
-		self.current_block.move(1,0)
+		rows_cleared = self.grid.clear_full_rows()
+		if rows_cleared > 0:
+			self.clear_sound.play()
+			self.update_score(rows_cleared, 0)
+		self.current_block = self.next_block
+		self.next_block = self.get_random_block()
 		if self.block_fits() == False:
-			for tile in self.current_block.tile_positions():
-				if tile.row == 1:
-					self.game_over = True
-			self.current_block.move(-1, 0)
-			self.place_block()
-			self.score += 4
+			self.game_over = True
+
+	def update_score(self, lines_cleared, move_down_points):
+
+		if lines_cleared == 1:
+			self.score += 100
+		elif lines_cleared == 2:
+			self.score += 300
+		elif lines_cleared == 3:
+			self.score += 500
+
+		self.score += move_down_points
 
 	def reset(self):
 		self.grid.reset()
-		self.set_current_block()
-		self.score = 0
-		self.game_over = False
 		self.blocks = [IBlock(), JBlock(), LBlock(), OBlock(), SBlock(), TBlock(), ZBlock()]
 		self.current_block = self.get_random_block()
 		self.next_block = self.get_random_block()
-
-	def get_random_block(self):
-		if len(self.blocks) != 0:
-			return self.blocks.pop(random.randrange(len(self.blocks)))
-		else:
-			self.blocks = [IBlock(), JBlock(), LBlock(), OBlock(), SBlock(), TBlock(), ZBlock()]
-			return self.blocks.pop(random.randrange(len(self.blocks)))
+		self.score = 0
