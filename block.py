@@ -30,10 +30,9 @@ class Block:
 			self.rotation_state = 0
 
 	def undo_rotation(self):
-		if self.rotation_state == 0:
+		self.rotation_state -= 1
+		if self.rotation_state == -1:
 			self.rotation_state = len(self.cells) - 1
-		else:
-			self.rotation_state -= 1
 
 	def draw(self, screen, offset_x, offset_y):
 		tiles = self.get_cell_positions()
